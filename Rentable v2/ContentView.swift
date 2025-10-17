@@ -9,16 +9,22 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        UIKitRootView()
+            .ignoresSafeArea()
+    }
+}
+
+struct UIKitRootView: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        return RootTabBarController()
+    }
+    
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
+        // No updates needed
     }
 }
 
 #Preview {
     ContentView()
 }
+
