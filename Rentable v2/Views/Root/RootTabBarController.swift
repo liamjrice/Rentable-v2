@@ -16,54 +16,61 @@ class RootTabBarController: UITabBarController {
     }
     
     private func setupTabs() {
-        // Auth Tab
-        let authVC = AuthenticationViewController()
-        let authNav = UINavigationController(rootViewController: authVC)
-        authNav.navigationBar.prefersLargeTitles = false
-        authNav.tabBarItem = UITabBarItem(
-            title: nil,
-            image: UIImage(systemName: "person.circle"),
-            selectedImage: UIImage(systemName: "person.circle.fill")
-        )
-        authNav.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
-        
-        // Properties Tab
-        let propertiesVC = PropertyListViewController()
-        let propertiesNav = UINavigationController(rootViewController: propertiesVC)
-        propertiesNav.navigationBar.prefersLargeTitles = false
-        propertiesNav.tabBarItem = UITabBarItem(
-            title: nil,
+        // Home Tab (Chat Interface)
+        let homeVC = HomeViewController()
+        let homeNav = UINavigationController(rootViewController: homeVC)
+        homeNav.navigationBar.prefersLargeTitles = false
+        homeNav.tabBarItem = UITabBarItem(
+            title: "Home",
             image: UIImage(systemName: "house"),
             selectedImage: UIImage(systemName: "house.fill")
         )
-        propertiesNav.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
         
-        // Landlord Tab
-        let landlordVC = LandlordDashboardViewController()
-        let landlordNav = UINavigationController(rootViewController: landlordVC)
-        landlordNav.navigationBar.prefersLargeTitles = false
-        landlordNav.tabBarItem = UITabBarItem(
-            title: nil,
-            image: UIImage(systemName: "person.2"),
-            selectedImage: UIImage(systemName: "person.2.fill")
+        // Inbox Tab
+        let inboxVC = UIViewController()
+        inboxVC.view.backgroundColor = .systemBackground
+        inboxVC.title = "Inbox"
+        let inboxNav = UINavigationController(rootViewController: inboxVC)
+        inboxNav.navigationBar.prefersLargeTitles = false
+        inboxNav.tabBarItem = UITabBarItem(
+            title: "Inbox",
+            image: UIImage(systemName: "envelope"),
+            selectedImage: UIImage(systemName: "envelope.fill")
         )
-        landlordNav.tabBarItem.imageInsets = UIEdgeInsets(top: 6, left: 0, bottom: -6, right: 0)
         
-        viewControllers = [authNav, propertiesNav, landlordNav]
+        // Settings Tab
+        let settingsVC = UIViewController()
+        settingsVC.view.backgroundColor = .systemBackground
+        settingsVC.title = "Settings"
+        let settingsNav = UINavigationController(rootViewController: settingsVC)
+        settingsNav.navigationBar.prefersLargeTitles = false
+        settingsNav.tabBarItem = UITabBarItem(
+            title: "Settings",
+            image: UIImage(systemName: "gearshape"),
+            selectedImage: UIImage(systemName: "gearshape.fill")
+        )
+        
+        viewControllers = [homeNav, inboxNav, settingsNav]
     }
     
     private func configureAppearance() {
-        // Remove tab bar background for a cleaner look
+        // Modern tab bar appearance
         let appearance = UITabBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.backgroundColor = .clear
+        appearance.configureWithDefaultBackground()
+        appearance.backgroundColor = .systemBackground
         
         // Set item colors
         appearance.stackedLayoutAppearance.normal.iconColor = .systemGray
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.systemGray]
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.systemGray,
+            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
+        ]
         
         appearance.stackedLayoutAppearance.selected.iconColor = .systemBlue
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor.systemBlue]
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor.systemBlue,
+            .font: UIFont.systemFont(ofSize: 10, weight: .semibold)
+        ]
         
         // Apply appearance
         tabBar.standardAppearance = appearance
@@ -72,7 +79,7 @@ class RootTabBarController: UITabBarController {
         // Additional styling
         tabBar.tintColor = .systemBlue
         tabBar.unselectedItemTintColor = .systemGray
-        tabBar.isTranslucent = true
+        tabBar.isTranslucent = false
     }
 }
 

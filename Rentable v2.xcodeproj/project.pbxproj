@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AD5DA1BE2EA93E8F00C2313B /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = AD5DA1BC2EA93E8E00C2313B /* Config.xcconfig */; };
+		AD5DA1BF2EA93E8F00C2313B /* Config.example.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = AD5DA1BD2EA93E8E00C2313B /* Config.example.xcconfig */; };
 		AD8157A02EA2874100C83806 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = AD81579F2EA2874100C83806 /* Auth */; };
 		AD8157A22EA2874100C83806 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = AD8157A12EA2874100C83806 /* Functions */; };
 		AD8157A42EA2874100C83806 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = AD8157A32EA2874100C83806 /* PostgREST */; };
@@ -33,6 +35,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		AD5DA1BC2EA93E8E00C2313B /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		AD5DA1BD2EA93E8E00C2313B /* Config.example.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.example.xcconfig; sourceTree = "<group>"; };
 		AD8157742EA286EB00C83806 /* Rentable v2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rentable v2.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD8157812EA286ED00C83806 /* Rentable v2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rentable v2Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AD81578B2EA286ED00C83806 /* Rentable v2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Rentable v2UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -90,6 +94,8 @@
 		AD81576B2EA286EB00C83806 = {
 			isa = PBXGroup;
 			children = (
+				AD5DA1BC2EA93E8E00C2313B /* Config.xcconfig */,
+				AD5DA1BD2EA93E8E00C2313B /* Config.example.xcconfig */,
 				AD8157762EA286EB00C83806 /* Rentable v2 */,
 				AD8157842EA286ED00C83806 /* Rentable v2Tests */,
 				AD81578E2EA286ED00C83806 /* Rentable v2UITests */,
@@ -244,6 +250,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD5DA1BE2EA93E8F00C2313B /* Config.xcconfig in Resources */,
+				AD5DA1BF2EA93E8F00C2313B /* Config.example.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

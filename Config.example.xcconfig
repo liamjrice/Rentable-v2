@@ -1,0 +1,6 @@
+// Configuration file template for API keys and environment variables
+// Copy this file to Config.xcconfig and add your actual API keys
+
+// Google Gemini API Key
+GEMINI_API_KEY = your-gemini-api-key-here
+
