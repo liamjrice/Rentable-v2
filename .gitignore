@@ -89,6 +89,60 @@ fastlane/test_output
 
 iOSInjectionProject/
 
-# API Keys and Configuration
-Config.xcconfig
+# Supabase Configuration (IMPORTANT: Keep credentials secret)
+Supabase-Info.plist
+.env
+.env.*
+!.env.example
 
+# Xcode Config (if containing sensitive data)
+Config.xcconfig
+!Config.example.xcconfig
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Testing
+*.gcda
+*.gcno
+
+# Firebase (if used later)
+GoogleService-Info.plist
+firebase-debug.log
+
+# Local development
+local.properties

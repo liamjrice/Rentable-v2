@@ -70,12 +70,24 @@ class HomeViewController: UIViewController {
     
     private let inputContainer: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemBackground
-        view.layer.cornerRadius = 32
-        view.layer.borderWidth = 1
-        view.layer.borderColor = UIColor.systemGray5.cgColor
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = 28
+        view.layer.masksToBounds = true
+        view.clipsToBounds = true
+        // Subtle border to enhance liquid glass edge
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.white.withAlphaComponent(0.15).cgColor
         return view
+    }()
+    
+    private let inputBlurView: UIVisualEffectView = {
+        // Use system material blur for a liquid glass look
+        let blurEffect = UIBlurEffect(style: .systemMaterial)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.translatesAutoresizingMaskIntoConstraints = false
+        blurView.layer.cornerRadius = 28
+        blurView.clipsToBounds = true
+        return blurView
     }()
     
     private let microphoneButton: UIButton = {
@@ -84,7 +96,7 @@ class HomeViewController: UIViewController {
         let config = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         let image = UIImage(systemName: "mic.fill", withConfiguration: config)
         button.setImage(image, for: .normal)
-        button.tintColor = .secondaryLabel
+        button.tintColor = UIColor.label.withAlphaComponent(0.6)
         return button
     }()
     
@@ -93,13 +105,14 @@ class HomeViewController: UIViewController {
         textField.attributedPlaceholder = NSAttributedString(
             string: "Get started ...",
             attributes: [
-                .foregroundColor: UIColor.secondaryLabel,
+                .foregroundColor: UIColor.label.withAlphaComponent(0.5),
                 .font: UIFont.systemFont(ofSize: 16, weight: .regular)
             ]
         )
         textField.font = .systemFont(ofSize: 16, weight: .regular)
         textField.textColor = .label
-        textField.textAlignment = .center
+        textField.backgroundColor = .clear
+        textField.textAlignment = .natural
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.autocorrectionType = .default
         textField.returnKeyType = .send
@@ -110,10 +123,10 @@ class HomeViewController: UIViewController {
     private let sendButton: UIButton = {
         let button = UIButton(type: .custom)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .systemGray4
-        button.layer.cornerRadius = 12
+        button.backgroundColor = UIColor.label.withAlphaComponent(0.12)
+        button.layer.cornerRadius = 20
         
-        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .semibold)
+        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .semibold)
         let image = UIImage(systemName: "arrow.up", withConfiguration: config)
         button.setImage(image, for: .normal)
         button.tintColor = .label
@@ -206,10 +219,25 @@ class HomeViewController: UIViewController {
         
         // Add input container
         view.addSubview(inputContainer)
+        
+        inputContainer.addSubview(inputBlurView)
+        NSLayoutConstraint.activate([
+            inputBlurView.topAnchor.constraint(equalTo: inputContainer.topAnchor),
+            inputBlurView.bottomAnchor.constraint(equalTo: inputContainer.bottomAnchor),
+            inputBlurView.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor),
+            inputBlurView.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor)
+        ])
+        
         inputContainer.addSubview(microphoneButton)
         inputContainer.addSubview(inputTextField)
         inputContainer.addSubview(sendButton)
         inputContainer.addSubview(loadingIndicator)
+        
+        // Ensure input container controls sit above blur view
+        inputContainer.bringSubviewToFront(microphoneButton)
+        inputContainer.bringSubviewToFront(inputTextField)
+        inputContainer.bringSubviewToFront(sendButton)
+        inputContainer.bringSubviewToFront(loadingIndicator)
         
         // Add header - these should be on top
         view.addSubview(headerContainer)
@@ -255,7 +283,7 @@ class HomeViewController: UIViewController {
             // Input container
             inputContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             inputContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            inputContainer.heightAnchor.constraint(equalToConstant: 56),
+            inputContainer.heightAnchor.constraint(equalToConstant: 60),
             
             // Microphone button
             microphoneButton.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor, constant: 14),
@@ -266,8 +294,8 @@ class HomeViewController: UIViewController {
             // Send button
             sendButton.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -14),
             sendButton.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
-            sendButton.widthAnchor.constraint(equalToConstant: 24),
-            sendButton.heightAnchor.constraint(equalToConstant: 24),
+            sendButton.widthAnchor.constraint(equalToConstant: 40),
+            sendButton.heightAnchor.constraint(equalToConstant: 40),
             
             // Input text field
             inputTextField.leadingAnchor.constraint(equalTo: microphoneButton.trailingAnchor, constant: 8),
@@ -278,6 +306,13 @@ class HomeViewController: UIViewController {
             loadingIndicator.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor, constant: -14),
             loadingIndicator.centerYAnchor.constraint(equalTo: inputContainer.centerYAnchor),
         ])
+        
+        // Optional: subtle shadow for readability and depth
+        inputContainer.layer.shadowColor = UIColor.black.cgColor
+        inputContainer.layer.shadowOpacity = 0.08
+        inputContainer.layer.shadowRadius = 12
+        inputContainer.layer.shadowOffset = CGSize(width: 0, height: 4)
+        inputContainer.layer.masksToBounds = false
         
         if #available(iOS 15.0, *) {
             // Use the system keyboard layout guide for perfect syncing

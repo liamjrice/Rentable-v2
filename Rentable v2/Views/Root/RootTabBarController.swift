@@ -50,7 +50,17 @@ class RootTabBarController: UITabBarController {
             selectedImage: UIImage(systemName: "gearshape.fill")
         )
         
-        viewControllers = [homeNav, inboxNav, settingsNav]
+        // More Tab
+        let moreVC = MoreViewController()
+        let moreNav = UINavigationController(rootViewController: moreVC)
+        moreNav.navigationBar.prefersLargeTitles = false
+        moreNav.tabBarItem = UITabBarItem(
+            title: "More",
+            image: UIImage(systemName: "ellipsis"),
+            selectedImage: UIImage(systemName: "ellipsis.circle.fill")
+        )
+        
+        viewControllers = [homeNav, inboxNav, settingsNav, moreNav]
     }
     
     private func configureAppearance() {
