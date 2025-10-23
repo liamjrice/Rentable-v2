@@ -5,6 +5,9 @@
 //  Created by Liam Rice on 22/10/2025.
 //
 
+// Note: This `Environment` is a configuration enum, not SwiftUI's `@Environment` property wrapper.
+// Use as `Environment.current` or pass instances; do not prefix with `@`.
+
 import Foundation
 
 /// App environment configuration

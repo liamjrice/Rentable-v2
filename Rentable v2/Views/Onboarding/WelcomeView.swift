@@ -23,7 +23,6 @@ struct WelcomeView: View {
     
     @State private var email: String = ""
     @State private var password: String = ""
-    @State private var showPassword: Bool = false
     @State private var hasInteractedWithEmail: Bool = false
     @State private var hasInteractedWithPassword: Bool = false
     @State private var navigateToSignup: Bool = false
@@ -31,7 +30,7 @@ struct WelcomeView: View {
     // MARK: - Computed Properties
     
     private var canProceed: Bool {
-        if !showPassword {
+        if !viewModel.showPassword {
             return viewModel.isEmailValid && !email.isEmpty
         } else {
             return viewModel.isEmailValid && !email.isEmpty && !password.isEmpty
@@ -90,19 +89,13 @@ struct WelcomeView: View {
             }
             .onChange(of: email) { newValue in
                 viewModel.email = newValue
-                if showPassword {
-                    showPassword = false
+                if viewModel.showPassword {
+                    viewModel.showPassword = false
                     password = ""
                     hasInteractedWithPassword = false
                 }
             }
-            .onChange(of: viewModel.emailExists) { exists in
-                showPassword = true
-                if !exists {
-                    // Navigate to signup flow
-                    navigateToSignup = true
-                }
-            }
+            
             .disabled(viewModel.isLoading || viewModel.isCheckingEmail)
             .sheet(isPresented: $navigateToSignup) {
                 SignupCoordinatorView(email: email, password: password)
@@ -167,7 +160,7 @@ struct WelcomeView: View {
             }
             
             // Password Field (conditional)
-            if showPassword {
+            if viewModel.showPassword {
                 VStack(alignment: .leading, spacing: 8) {
                     SecureField("Password", text: $password)
                         .textContentType(viewModel.emailExists ? .password : .newPassword)
@@ -206,7 +199,7 @@ struct WelcomeView: View {
                 }
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: showPassword)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.showPassword)
     }
     
     private var actionButton: some View {
@@ -272,7 +265,7 @@ struct WelcomeView: View {
     }
     
     private var buttonTitle: String {
-        if !showPassword {
+        if !viewModel.showPassword {
             return "Continue"
         } else {
             return viewModel.emailExists ? "Sign In" : "Create Account"
@@ -282,7 +275,7 @@ struct WelcomeView: View {
     // MARK: - Actions
     
     private func handleAction() {
-        if !showPassword {
+        if !viewModel.showPassword {
             handleEmailSubmit()
         } else {
             handlePasswordSubmit()
@@ -304,7 +297,7 @@ struct WelcomeView: View {
             await viewModel.checkEmail()
             
             // After checking, focus on password field if shown
-            if showPassword {
+            if viewModel.showPassword {
                 try? await Task.sleep(nanoseconds: 300_000_000) // 0.3s delay
                 focusedField = .password
             }
@@ -328,9 +321,9 @@ struct WelcomeView: View {
                 // AppState will handle navigation after successful sign in
             }
         } else {
-            // Navigate to signup flow
+            // Navigate to signup flow with the entered password
             viewModel.prepareForSignUp()
-            // Navigation will be handled by coordinator
+            navigateToSignup = true
         }
     }
 }

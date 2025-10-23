@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import Combine
+
 
 // MARK: - Shake Animation Modifier
 
@@ -37,8 +39,7 @@ struct VerificationView: View {
     let email: String
     
     @StateObject private var viewModel = OnboardingViewModel()
-    @Environment(\.dismiss) private var dismiss
-    
+    @SwiftUI.Environment(\.dismiss) private var dismiss
     @State private var otpCode: String = ""
     @State private var isVerifying: Bool = false
     @State private var canResend: Bool = false
@@ -90,7 +91,7 @@ struct VerificationView: View {
                             .background(Color(.systemGray6))
                             .cornerRadius(12)
                             .focused($isOTPFocused)
-                            .onChange(of: otpCode) { newValue in
+                            .onChange(of: otpCode) { oldValue, newValue in
                                 handleOTPChange(newValue)
                             }
                             .disabled(isVerifying)
@@ -214,53 +215,25 @@ struct VerificationView: View {
         isOTPFocused = false
         
         Task {
-            // For MVP testing, accept "123456"
-            if otpCode == "123456" {
-                // Simulate delay
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
+            let success = await viewModel.verifyOTP(code: otpCode)
+            
+            if success {
                 await MainActor.run {
-                    // Success haptic feedback
                     let generator = UINotificationFeedbackGenerator()
                     generator.notificationOccurred(.success)
-                    
-                    // Dismiss and let AppState handle navigation
                     dismiss()
                 }
             } else {
-                // Real OTP verification via Supabase
-                let success = await viewModel.verifyOTP(code: otpCode)
-                
-                if success {
-                    await MainActor.run {
-                        // Success haptic feedback
-                        let generator = UINotificationFeedbackGenerator()
-                        generator.notificationOccurred(.success)
-                        
-                        // Dismiss - AppState.currentUser is updated
-                        dismiss()
-                    }
-                } else {
-                    await MainActor.run {
-                        // Error haptic feedback
-                        let generator = UINotificationFeedbackGenerator()
-                        generator.notificationOccurred(.error)
-                        
-                        // Shake animation
-                        withAnimation(.default) {
-                            shakeCount += 1
-                        }
-                        
-                        errorMessage = "Invalid code. Please try again."
-                        showError = true
-                        isVerifying = false
-                        
-                        // Clear code and refocus
-                        otpCode = ""
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            isOTPFocused = true
-                        }
+                await MainActor.run {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.error)
+                    withAnimation(.default) { shakeCount += 1 }
+                    errorMessage = "Invalid code. Please try again."
+                    showError = true
+                    isVerifying = false
+                    otpCode = ""
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        isOTPFocused = true
                     }
                 }
             }

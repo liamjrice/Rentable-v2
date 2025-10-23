@@ -15,7 +15,7 @@ struct Rentable_v2App: App {
     // MARK: - State
     
     @StateObject private var coordinator = AppCoordinator.shared
-    @Environment(\.scenePhase) var scenePhase
+    @SwiftUI.Environment(\.scenePhase) private var scenePhase
     
     // MARK: - Initialization
     
@@ -47,17 +47,19 @@ struct Rentable_v2App: App {
                     .animation(.easeInOut(duration: 0.3), value: coordinator.currentFlow)
                 }
             }
+            .environmentObject(coordinator)
+            .environmentObject(coordinator.appState)
             .onOpenURL { url in
                 // Handle deep links
                 coordinator.handleDeepLink(url)
             }
-            .onChange(of: coordinator.appState.isAuthenticated) { isAuthenticated in
+            .onChange(of: coordinator.appState.isAuthenticated) { oldValue, newValue in
                 // Update flow when auth state changes
                 Task {
                     await coordinator.initialize()
                 }
             }
-            .onChange(of: scenePhase) { newPhase in
+            .onChange(of: scenePhase) { oldPhase, newPhase in
                 handleScenePhaseChange(newPhase)
             }
         }
@@ -113,5 +115,3 @@ struct Rentable_v2App: App {
         }
     }
 }
-
-

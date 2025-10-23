@@ -68,7 +68,7 @@ actor AuthenticationService {
     func checkEmailExists(email: String) async throws -> Bool {
         do {
             // Query the profiles table for the email
-            let response: [User] = try await client.database
+            let response: [User] = try await client
                 .from("profiles")
                 .select()
                 .eq("email", value: email)
@@ -81,95 +81,69 @@ actor AuthenticationService {
         }
     }
     
-    /// Signs in a user with email and password
-    /// - Parameters:
-    ///   - email: User's email
-    ///   - password: User's password
-    /// - Returns: Authenticated user with profile data
-    func signIn(email: String, password: String) async throws -> User {
-        do {
-            // Authenticate with Supabase
-            let session = try await client.auth.signIn(
-                email: email,
-                password: password
-            )
-            
-            // Check if email is confirmed
-            if let emailConfirmed = session.user.emailConfirmedAt, emailConfirmed == nil {
-                throw AuthError.emailNotVerified
-            }
-            
-            // Fetch user profile from database after successful auth
-            let userId = session.user.id
-            let user: User = try await client.database
-                .from("profiles")
-                .select()
-                .eq("id", value: userId.uuidString)
-                .single()
-                .execute()
-                .value
-            
-            return user
-            
-        } catch let error as AuthError {
-            throw error
-        } catch {
-            // Map Supabase errors to user-friendly messages
-            let errorDesc = error.localizedDescription.lowercased()
-            if errorDesc.contains("invalid login") || errorDesc.contains("invalid credentials") {
-                throw AuthError.invalidCredentials
-            } else if errorDesc.contains("email not confirmed") || errorDesc.contains("not verified") {
-                throw AuthError.emailNotVerified
-            } else if errorDesc.contains("network") || errorDesc.contains("connection") {
-                throw AuthError.networkError
-            } else if errorDesc.contains("not found") {
-                throw AuthError.userNotFound
-            } else {
-                throw AuthError.unknown(error)
-            }
+   /// Signs in a user with email and password
+/// - Parameters:
+///   - email: User's email
+///   - password: User's password
+/// - Returns: Authenticated user with profile data
+func signIn(email: String, password: String) async throws -> User {
+    do {
+        // Authenticate with Supabase
+        let session = try await client.auth.signIn(
+            email: email,
+            password: password
+        )
+
+        // Check if email is confirmed
+        if session.user.emailConfirmedAt == nil {
+            throw AuthError.emailNotVerified
+        }
+
+        // Fetch user profile from database after successful auth
+        let userId = session.user.id
+        let user: User = try await client
+            .from("profiles")
+            .select()
+            .eq("id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+
+        return user
+
+    } catch let error as AuthError {
+        throw error
+    } catch {
+        // Map Supabase errors to user-friendly messages
+        let errorDesc = error.localizedDescription.lowercased()
+        if errorDesc.contains("invalid login") || errorDesc.contains("invalid credentials") {
+            throw AuthError.invalidCredentials
+        } else if errorDesc.contains("email not confirmed") || errorDesc.contains("not verified") {
+            throw AuthError.emailNotVerified
+        } else if errorDesc.contains("network") || errorDesc.contains("connection") {
+            throw AuthError.networkError
+        } else if errorDesc.contains("not found") {
+            throw AuthError.userNotFound
+        } else {
+            throw AuthError.unknown(error)
         }
     }
+}
     
     /// Signs up a new user
     /// - Parameters:
     ///   - email: User's email
     ///   - password: User's password
     ///   - userData: User profile data
-    /// - Returns: Supabase session
-    /// - Note: Supabase auto-sends verification email, session stored in memory
-    func signUp(email: String, password: String, userData: User) async throws -> Session {
+    /// - Returns: Void (verification email is sent; session may be nil until verified)
+    /// - Note: Supabase auto-sends verification email. Profile will be created after OTP verification when a session exists.
+    func signUp(email: String, password: String, userData: User) async throws {
         do {
-            // Create auth user - Supabase auto-sends verification email
-            let authResponse = try await client.auth.signUp(
+            // Request signup (verification email is sent automatically by Supabase)
+            _ = try await client.auth.signUp(
                 email: email,
                 password: password
             )
-            
-            guard let session = authResponse.session else {
-                throw AuthError.invalidData
-            }
-            
-            // Create user profile in database
-            // Prepare data for insertion (convert to snake_case)
-            let encoder = JSONEncoder()
-            encoder.keyEncodingStrategy = .convertToSnakeCase
-            encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(userData)
-            
-            // Insert into profiles table and get the created record back
-            let createdUser: User = try await client.database
-                .from("profiles")
-                .insert(data)
-                .select()
-                .single()
-                .execute()
-                .value
-            
-            // Store session in memory (not disk yet - until email verified)
-            // Session is automatically managed by Supabase client
-            
-            return session
-            
         } catch let error as AuthError {
             throw error
         } catch {
@@ -199,19 +173,43 @@ actor AuthenticationService {
                 token: code,
                 type: .signup
             )
-            
-            // Fetch and return user profile
+
             let userId = session.user.id
-            let user: User = try await client.database
+
+            // Ensure a profile row exists now that we have a session
+            struct NewProfileMinimal: Encodable {
+                let id: UUID
+                let email: String
+                let user_type: String
+                let created_at: Date
+            }
+            let minimal = NewProfileMinimal(
+                id: userId,
+                email: email,
+                user_type: "tenant",
+                created_at: Date()
+            )
+            // Try insert; if it already exists, ignore error
+            do {
+                _ = try await client
+                    .from("profiles")
+                    .insert(minimal)
+                    .execute()
+            } catch {
+                // Ignore conflict/duplicate insert errors
+            }
+
+            // Fetch and return user profile
+            let user: User = try await client
                 .from("profiles")
                 .select()
                 .eq("id", value: userId.uuidString)
                 .single()
                 .execute()
                 .value
-            
+
             return user
-            
+
         } catch {
             let errorDesc = error.localizedDescription.lowercased()
             if errorDesc.contains("invalid") || errorDesc.contains("expired") {
@@ -235,15 +233,15 @@ actor AuthenticationService {
             guard let imageData = image.jpegData(compressionQuality: 0.7) else {
                 throw AuthError.uploadFailed
             }
-            
+
             // Ensure image is within size limit (max 1MB)
             guard imageData.count <= 1_048_576 else {
                 throw AuthError.uploadFailed
             }
-            
+
             // Generate unique filename: userId/profile.jpg
             let fileName = "\(userId.uuidString)/profile.jpg"
-            
+
             // Upload to storage
             try await client.storage
                 .from("avatars")
@@ -255,26 +253,26 @@ actor AuthenticationService {
                         upsert: true
                     )
                 )
-            
+
             // Get public URL
             let publicURL = try client.storage
                 .from("avatars")
                 .getPublicURL(path: fileName)
-            
+
             // Update profiles table with image URL
-            try await client.database
+            try await client
                 .from("profiles")
                 .update(["profile_image_url": publicURL.absoluteString])
                 .eq("id", value: userId.uuidString)
                 .execute()
-            
+
             return publicURL.absoluteString
-            
+
         } catch let error as AuthError {
             throw error
         } catch {
-            let errorDesc = error.localizedDescription.lowercased()
-            if errorDesc.contains("network") || errorDesc.contains("connection") {
+            let desc = error.localizedDescription.lowercased()
+            if desc.contains("network") || desc.contains("connection") {
                 throw AuthError.networkError
             } else {
                 throw AuthError.uploadFailed
@@ -293,9 +291,9 @@ actor AuthenticationService {
             guard imageData.count <= 1_048_576 else {
                 throw AuthError.uploadFailed
             }
-            
+
             let fileName = "\(userId.uuidString)/profile.jpg"
-            
+
             // Upload to storage
             try await client.storage
                 .from("avatars")
@@ -307,28 +305,28 @@ actor AuthenticationService {
                         upsert: true
                     )
                 )
-            
+
             // Get public URL
             let publicURL = try client.storage
                 .from("avatars")
                 .getPublicURL(path: fileName)
-            
+
             // Update profiles table with image URL
-            try await client.database
+            try await client
                 .from("profiles")
                 .update(["profile_image_url": publicURL.absoluteString])
                 .eq("id", value: userId.uuidString)
                 .execute()
-            
+
             return publicURL.absoluteString
-            
+
         } catch let error as AuthError {
             throw error
         } catch {
             throw AuthError.uploadFailed
         }
     }
-    
+
     /// Signs out the current user
     func signOut() async throws {
         do {

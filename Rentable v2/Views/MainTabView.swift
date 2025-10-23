@@ -67,16 +67,15 @@ struct MainTabView: View {
             Text("Welcome to Rentable")
                 .font(.title.bold())
             
+            // Line 70-79
             if let user = appState.currentUser {
                 Text("Hello, \(user.fullName ?? "there")!")
                     .font(.headline)
                     .foregroundColor(.secondary)
                 
-                if let email = user.email {
-                    Text(email)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
+                Text(user.email)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
             
             Spacer()

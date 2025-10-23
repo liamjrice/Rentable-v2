@@ -24,7 +24,6 @@ class AppState: ObservableObject {
     
     // MARK: - Private Properties
     
-    private let authService = AuthenticationService.shared
     private let client = SupabaseManager.shared.client
     private var authStateTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
@@ -48,23 +47,23 @@ class AppState: ObservableObject {
             isLoading = false
         }
         
-        // Check if we have an active session
-        guard let session = await authService.currentSession(),
-              let userId = await authService.currentUserId() else {
-            isAuthenticated = false
-            currentUser = nil
-            return
-        }
-        
-        // Fetch user profile
-        do {
-            let user: User = try await client.database
-                .from("profiles")
-                .select()
-                .eq("id", value: userId.uuidString)
-                .single()
-                .execute()
-                .value
+       // Check if we have an active session directly from client
+guard let session = client.auth.currentSession else {
+    isAuthenticated = false
+    currentUser = nil
+    return
+}
+let userId = session.user.id
+
+// Fetch user profile
+do {
+    let user: User = try await client
+        .from("profiles")
+        .select()
+        .eq("id", value: userId.uuidString)
+        .single()
+        .execute()
+        .value
             
             currentUser = user
             isAuthenticated = true
@@ -90,7 +89,8 @@ class AppState: ObservableObject {
     /// Signs out the current user
     func signOut() async {
         do {
-            try await authService.signOut()
+            // Call signOut directly on client instead of through actor
+            try await client.auth.signOut()
             clearSession()
         } catch {
             print("Sign out error: \(error)")
@@ -104,15 +104,19 @@ class AppState: ObservableObject {
         authStateTask = Task { [weak self] in
             guard let self = self else { return }
             
-            for await state in client.auth.authStateChanges {
-                await self.handleAuthStateChange(state)
+            for await (event, session) in await self.client.auth.authStateChanges {
+                await MainActor.run {
+                    Task {
+                        await self.handleAuthStateChange(event, session: session)
+                    }
+                }
             }
         }
     }
     
     /// Handles authentication state changes
-    private func handleAuthStateChange(_ state: AuthChangeEvent) async {
-        switch state {
+    private func handleAuthStateChange(_ event: AuthChangeEvent, session: Session?) async {
+        switch event {
         case .signedIn:
             // User signed in, restore their session
             await restoreSession()
@@ -123,9 +127,9 @@ class AppState: ObservableObject {
             
         case .userUpdated:
             // User data updated, refresh profile
-            if let userId = await authService.currentUserId() {
+            if let userId = client.auth.currentSession?.user.id {
                 do {
-                    let user: User = try await client.database
+                    let user: User = try await client
                         .from("profiles")
                         .select()
                         .eq("id", value: userId.uuidString)
@@ -156,4 +160,3 @@ class AppState: ObservableObject {
         authStateTask?.cancel()
     }
 }
-

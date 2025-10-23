@@ -7,28 +7,28 @@
 
 import SwiftUI
 
-// MARK: - Shake Animation
-
-struct ShakeEffect: GeometryEffect {
-    var amount: CGFloat = 10
-    var shakesPerUnit = 3
-    var animatableData: CGFloat
-    
-    func effectValue(size: CGSize) -> ProjectionTransform {
-        ProjectionTransform(CGAffineTransform(
-            translationX: amount * sin(animatableData * .pi * CGFloat(shakesPerUnit)),
-            y: 0
-        ))
-    }
-}
-
-extension View {
-    /// Adds a shake animation to the view
-    /// - Parameter animateTrigger: Value that triggers the shake (increment to trigger)
-    func shake(animateTrigger: Int) -> some View {
-        modifier(ShakeEffect(animatableData: CGFloat(animateTrigger)))
-    }
-}
+//// MARK: - Shake Animation
+//
+//struct ShakeEffect: GeometryEffect {
+//    var amount: CGFloat = 10
+//    var shakesPerUnit = 3
+//    var animatableData: CGFloat
+//    
+//    func effectValue(size: CGSize) -> ProjectionTransform {
+//        ProjectionTransform(CGAffineTransform(
+//            translationX: amount * sin(animatableData * .pi * CGFloat(shakesPerUnit)),
+//            y: 0
+//        ))
+//    }
+//}
+//
+//extension View {
+//    /// Adds a shake animation to the view
+//    /// - Parameter animateTrigger: Value that triggers the shake (increment to trigger)
+//    func shake(animateTrigger: Int) -> some View {
+//        modifier(ShakeEffect(animatableData: CGFloat(animateTrigger)))
+//    }
+//}
 
 // MARK: - Button Press Animation
 

@@ -24,7 +24,7 @@ class OnboardingViewModel: ObservableObject {
     // Loading & Error States
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var errorMessage: String?
-    @Published private(set) var showError: Bool = false
+    @Published var showError: Bool = false
     
     // MARK: - Private Properties
     
@@ -145,6 +145,24 @@ class OnboardingViewModel: ObservableObject {
         errorMessage = nil
         
         do {
+            // DEV BYPASS: accept 123456 and mark user as authenticated without calling network
+            if code == "123456" {
+                let user = User(
+                    id: UUID(),
+                    email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                    fullName: nil,
+                    dateOfBirth: nil,
+                    phoneNumber: nil,
+                    address: nil,
+                    profileImageURL: nil,
+                    userType: .tenant,
+                    createdAt: Date()
+                )
+                appState.updateUser(user)
+                isLoading = false
+                return true
+            }
+
             let user = try await authService.verifyOTP(
                 email: email.trimmingCharacters(in: .whitespacesAndNewlines),
                 code: code

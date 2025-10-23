@@ -180,7 +180,7 @@ struct SignupCoordinatorView: View {
                 let userId = UUID()
                 let user = signupData.toUser(id: userId)
                 
-                let session = try await AuthenticationService.shared.signUp(
+                try await AuthenticationService.shared.signUp(
                     email: signupData.email,
                     password: signupData.password,
                     userData: user

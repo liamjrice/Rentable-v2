@@ -30,7 +30,7 @@ class AuthService: AuthServicing {
         
         // Fetch user data from your users table
         let userId = session.user.id.uuidString
-        let user: AppUser = try await client.database
+        let user: AppUser = try await client
             .from("users")
             .select()
             .eq("id", value: userId)
@@ -51,13 +51,13 @@ class AuthService: AuthServicing {
         
         // Create user record in your users table
         let newUser = AppUser(
-            id: userId,
+            id: UUID(uuidString: userId)!,
             email: email,
-            role: role,
+            userType: role,
             createdAt: Date()
         )
         
-        try await client.database
+        try await client
             .from("users")
             .insert(newUser)
             .execute()
@@ -73,4 +73,3 @@ class AuthService: AuthServicing {
         return client.auth.currentSession?.user.id.uuidString
     }
 }
-

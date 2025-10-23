@@ -20,7 +20,7 @@ class PropertyService: PropertyServicing {
     }
     
     func fetchAll() async throws -> [Property] {
-        let properties: [Property] = try await client.database
+        let properties: [Property] = try await client
             .from("properties")
             .select()
             .execute()
